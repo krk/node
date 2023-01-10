@@ -178,7 +178,7 @@ void BaseCollectionsAssembler::AddConstructorEntriesFromFastJSArray(
     // to the collection does not call user code that could mutate the elements
     // or collection.
     BuildFastLoop<IntPtrT>(IntPtrConstant(0), length, set_entry, 1,
-                           IndexAdvanceMode::kPost);
+                           LoopUnrollingMode::kNo, IndexAdvanceMode::kPost);
     Goto(&exit);
   }
   BIND(&if_doubles);
@@ -199,7 +199,7 @@ void BaseCollectionsAssembler::AddConstructorEntriesFromFastJSArray(
         AddConstructorEntry(variant, context, collection, add_func, entry);
       };
       BuildFastLoop<IntPtrT>(IntPtrConstant(0), length, set_entry, 1,
-                             IndexAdvanceMode::kPost);
+                             LoopUnrollingMode::kNo, IndexAdvanceMode::kPost);
       Goto(&exit);
     }
   }
@@ -1293,10 +1293,7 @@ void CollectionsBuiltinsAssembler::SameValueZeroString(
   GotoIf(TaggedIsSmi(candidate_key), if_not_same);
   GotoIfNot(IsString(CAST(candidate_key)), if_not_same);
 
-  Branch(TaggedEqual(CallBuiltin(Builtin::kStringEqual, NoContextConstant(),
-                                 key_string, candidate_key),
-                     TrueConstant()),
-         if_same, if_not_same);
+  BranchIfStringEqual(key_string, CAST(candidate_key), if_same, if_not_same);
 }
 
 void CollectionsBuiltinsAssembler::SameValueZeroBigInt(

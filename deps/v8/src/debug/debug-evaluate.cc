@@ -612,7 +612,11 @@ DebugInfo::SideEffectState BuiltinGetSideEffectState(Builtin id) {
     case Builtin::kArrayPrototypeLastIndexOf:
     case Builtin::kArrayPrototypeSlice:
     case Builtin::kArrayPrototypeToLocaleString:
+    case Builtin::kArrayPrototypeToReversed:
+    case Builtin::kArrayPrototypeToSorted:
+    case Builtin::kArrayPrototypeToSpliced:
     case Builtin::kArrayPrototypeToString:
+    case Builtin::kArrayPrototypeWith:
     case Builtin::kArrayForEach:
     case Builtin::kArrayEvery:
     case Builtin::kArraySome:
@@ -653,6 +657,9 @@ DebugInfo::SideEffectState BuiltinGetSideEffectState(Builtin id) {
     case Builtin::kTypedArrayPrototypeReduce:
     case Builtin::kTypedArrayPrototypeReduceRight:
     case Builtin::kTypedArrayPrototypeForEach:
+    case Builtin::kTypedArrayPrototypeToReversed:
+    case Builtin::kTypedArrayPrototypeToSorted:
+    case Builtin::kTypedArrayPrototypeWith:
     // ArrayBuffer builtins.
     case Builtin::kArrayBufferConstructor:
     case Builtin::kArrayBufferPrototypeGetByteLength:
@@ -883,6 +890,8 @@ DebugInfo::SideEffectState BuiltinGetSideEffectState(Builtin id) {
     case Builtin::kAllocateRegularInOldGeneration:
     case Builtin::kConstructVarargs:
     case Builtin::kConstructWithArrayLike:
+    case Builtin::kGetOwnPropertyDescriptor:
+    case Builtin::kOrdinaryGetOwnPropertyDescriptor:
       return DebugInfo::kHasNoSideEffect;
 
 #ifdef V8_INTL_SUPPORT
@@ -1119,20 +1128,17 @@ static bool TransitivelyCalledBuiltinHasNoSideEffect(Builtin caller,
     case Builtin::kArrayReduceRightLoopContinuation:
     case Builtin::kArraySomeLoopContinuation:
     case Builtin::kArrayTimSort:
+    case Builtin::kArrayTimSortIntoCopy:
     case Builtin::kCall_ReceiverIsAny:
     case Builtin::kCall_ReceiverIsNotNullOrUndefined:
     case Builtin::kCall_ReceiverIsNullOrUndefined:
     case Builtin::kCallWithArrayLike:
-    case Builtin::kCEntry_Return1_DontSaveFPRegs_ArgvOnStack_NoBuiltinExit:
-    case Builtin::kCEntry_Return1_DontSaveFPRegs_ArgvOnStack_BuiltinExit:
-    case Builtin::kCEntry_Return1_DontSaveFPRegs_ArgvInRegister_NoBuiltinExit:
-    case Builtin::kCEntry_Return1_SaveFPRegs_ArgvOnStack_NoBuiltinExit:
-    case Builtin::kCEntry_Return1_SaveFPRegs_ArgvOnStack_BuiltinExit:
-    case Builtin::kCEntry_Return2_DontSaveFPRegs_ArgvOnStack_NoBuiltinExit:
-    case Builtin::kCEntry_Return2_DontSaveFPRegs_ArgvOnStack_BuiltinExit:
-    case Builtin::kCEntry_Return2_DontSaveFPRegs_ArgvInRegister_NoBuiltinExit:
-    case Builtin::kCEntry_Return2_SaveFPRegs_ArgvOnStack_NoBuiltinExit:
-    case Builtin::kCEntry_Return2_SaveFPRegs_ArgvOnStack_BuiltinExit:
+    case Builtin::kCEntry_Return1_ArgvOnStack_NoBuiltinExit:
+    case Builtin::kCEntry_Return1_ArgvOnStack_BuiltinExit:
+    case Builtin::kCEntry_Return1_ArgvInRegister_NoBuiltinExit:
+    case Builtin::kCEntry_Return2_ArgvOnStack_NoBuiltinExit:
+    case Builtin::kCEntry_Return2_ArgvOnStack_BuiltinExit:
+    case Builtin::kCEntry_Return2_ArgvInRegister_NoBuiltinExit:
     case Builtin::kCloneFastJSArray:
     case Builtin::kConstruct:
     case Builtin::kConvertToLocaleString:
@@ -1145,6 +1151,8 @@ static bool TransitivelyCalledBuiltinHasNoSideEffect(Builtin caller,
     case Builtin::kFindOrderedHashSetEntry:
     case Builtin::kFlatMapIntoArray:
     case Builtin::kFlattenIntoArray:
+    case Builtin::kGenericArrayToReversed:
+    case Builtin::kGenericArrayWith:
     case Builtin::kGetProperty:
     case Builtin::kHasProperty:
     case Builtin::kCreateHTML:
@@ -1165,11 +1173,13 @@ static bool TransitivelyCalledBuiltinHasNoSideEffect(Builtin caller,
     case Builtin::kStringEqual:
     case Builtin::kStringIndexOf:
     case Builtin::kStringRepeat:
+    case Builtin::kBigIntEqual:
     case Builtin::kToInteger:
     case Builtin::kToLength:
     case Builtin::kToName:
     case Builtin::kToObject:
     case Builtin::kToString:
+    case Builtin::kTypedArrayMergeSort:
 #ifdef V8_IS_TSAN
     case Builtin::kTSANRelaxedStore8IgnoreFP:
     case Builtin::kTSANRelaxedStore8SaveFP:
@@ -1208,6 +1218,8 @@ static bool TransitivelyCalledBuiltinHasNoSideEffect(Builtin caller,
     case Builtin::kFastCreateDataProperty:
       switch (caller) {
         case Builtin::kArrayPrototypeSlice:
+        case Builtin::kArrayPrototypeToSpliced:
+        case Builtin::kArrayPrototypeWith:
         case Builtin::kArrayFilter:
           return true;
         default:
@@ -1216,6 +1228,7 @@ static bool TransitivelyCalledBuiltinHasNoSideEffect(Builtin caller,
     case Builtin::kSetProperty:
       switch (caller) {
         case Builtin::kArrayPrototypeSlice:
+        case Builtin::kArrayPrototypeToSorted:
         case Builtin::kTypedArrayPrototypeMap:
         case Builtin::kStringPrototypeMatchAll:
           return true;

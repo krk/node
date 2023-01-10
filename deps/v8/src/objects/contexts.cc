@@ -456,13 +456,6 @@ bool NativeContext::HasTemplateLiteralObject(JSArray array) {
   return array.map() == js_array_template_literal_object_map();
 }
 
-void NativeContext::AddOptimizedCode(CodeT code) {
-  DCHECK(CodeKindCanDeoptimize(code.kind()));
-  DCHECK(code.next_code_link().IsUndefined());
-  code.set_next_code_link(OptimizedCodeListHead());
-  set(OPTIMIZED_CODE_LIST, code, UPDATE_WRITE_BARRIER, kReleaseStore);
-}
-
 Handle<Object> Context::ErrorMessageForCodeGenerationFromStrings() {
   Isolate* isolate = GetIsolate();
   Handle<Object> result(error_message_for_code_gen_from_strings(), isolate);
@@ -541,7 +534,7 @@ void Context::VerifyExtensionSlot(HeapObject extension) {
 void Context::set_extension(HeapObject object, WriteBarrierMode mode) {
   DCHECK(scope_info().HasContextExtensionSlot());
 #ifdef VERIFY_HEAP
-  VerifyExtensionSlot(object);
+  if (v8_flags.verify_heap) VerifyExtensionSlot(object);
 #endif
   set(EXTENSION_INDEX, object, mode);
 }

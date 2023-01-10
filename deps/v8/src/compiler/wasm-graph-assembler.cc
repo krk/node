@@ -232,6 +232,15 @@ Node* WasmGraphAssembler::LoadFixedArrayElement(Node* fixed_array,
   return LoadFromObject(type, fixed_array, offset);
 }
 
+Node* WasmGraphAssembler::LoadWeakArrayListElement(Node* fixed_array,
+                                                   Node* index_intptr,
+                                                   MachineType type) {
+  Node* offset = IntAdd(
+      IntMul(index_intptr, IntPtrConstant(kTaggedSize)),
+      IntPtrConstant(wasm::ObjectAccess::ToTagged(WeakArrayList::kHeaderSize)));
+  return LoadFromObject(type, fixed_array, offset);
+}
+
 Node* WasmGraphAssembler::LoadImmutableFixedArrayElement(Node* fixed_array,
                                                          Node* index_intptr,
                                                          MachineType type) {
@@ -366,9 +375,9 @@ Node* WasmGraphAssembler::IsNotNull(Node* object) {
   return AddNode(graph()->NewNode(simplified_.IsNotNull(), object, control()));
 }
 
-Node* WasmGraphAssembler::AssertNotNull(Node* object) {
-  return AddNode(graph()->NewNode(simplified_.AssertNotNull(), object, effect(),
-                                  control()));
+Node* WasmGraphAssembler::AssertNotNull(Node* object, TrapId trap_id) {
+  return AddNode(graph()->NewNode(simplified_.AssertNotNull(trap_id), object,
+                                  effect(), control()));
 }
 
 Node* WasmGraphAssembler::WasmExternInternalize(Node* object) {

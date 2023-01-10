@@ -958,14 +958,14 @@ MaybeLocal<UnboundScript> CompileInspectorScript(Isolate* v8_isolate,
 }
 
 #if V8_ENABLE_WEBASSEMBLY
-void TierDownAllModulesPerIsolate(Isolate* v8_isolate) {
+void EnterDebuggingForIsolate(Isolate* v8_isolate) {
   i::Isolate* isolate = reinterpret_cast<i::Isolate*>(v8_isolate);
-  i::wasm::GetWasmEngine()->TierDownAllModulesPerIsolate(isolate);
+  i::wasm::GetWasmEngine()->EnterDebuggingForIsolate(isolate);
 }
 
-void TierUpAllModulesPerIsolate(Isolate* v8_isolate) {
+void LeaveDebuggingForIsolate(Isolate* v8_isolate) {
   i::Isolate* isolate = reinterpret_cast<i::Isolate*>(v8_isolate);
-  i::wasm::GetWasmEngine()->TierUpAllModulesPerIsolate(isolate);
+  i::wasm::GetWasmEngine()->LeaveDebuggingForIsolate(isolate);
 }
 #endif  // V8_ENABLE_WEBASSEMBLY
 

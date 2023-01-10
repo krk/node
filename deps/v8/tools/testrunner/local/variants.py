@@ -27,8 +27,14 @@ ALL_VARIANT_FLAGS = {
     # https://chromium-review.googlesource.com/c/452620/ for more discussion.
     # For WebAssembly, we test "Liftoff-only" in the nooptimization variant and
     # "TurboFan-only" in the stress variant. The WebAssembly configuration is
-    # independent of JS optimizations, so we can combine those configs.
-    "nooptimization": [["--no-turbofan", "--liftoff", "--no-wasm-tier-up"]],
+    # independent of JS optimizations, so we can combine those configs. We
+    # disable lazy compilation to have one test variant that tests eager
+    # compilation. "Liftoff-only" and eager compilation is not a problem,
+    # because test functions do typically not get optimized to TurboFan anyways.
+    "nooptimization": [[
+        "--no-turbofan", "--liftoff", "--no-wasm-tier-up",
+        "--no-wasm-lazy-compilation"
+    ]],
     "slow_path": [["--force-slow-path"]],
     "stress": [[
         "--no-liftoff", "--stress-lazy-source-positions",
@@ -47,7 +53,6 @@ ALL_VARIANT_FLAGS = {
     "instruction_scheduling": [["--turbo-instruction-scheduling"]],
     "stress_instruction_scheduling": [["--turbo-stress-instruction-scheduling"]
                                      ],
-    "wasm_write_protect_code": [["--wasm-write-protect-code-memory"]],
     # Google3 variants.
     "google3_icu": [[]],
     "google3_noicu": [[]],
@@ -64,7 +69,9 @@ INCOMPATIBLE_FLAGS_PER_VARIANT = {
     ],
     "nooptimization": ["--always-turbofan"],
     "slow_path": ["--no-force-slow-path"],
-    "stress_concurrent_allocation": ["--single-threaded-gc", "--predictable"],
+    "stress_concurrent_allocation": [
+        "--single-threaded", "--single-threaded-gc", "--predictable"
+    ],
     "stress_concurrent_inlining": [
         "--single-threaded", "--predictable", "--lazy-feedback-allocation",
         "--assert-types", "--no-concurrent-recompilation"
@@ -87,9 +94,6 @@ INCOMPATIBLE_FLAGS_PER_VARIANT = {
         "--cache=after-execute", "--cache=full-code-cache", "--cache=none"
     ],
     "experimental_regexp": ["--no-enable-experimental-regexp-engine"],
-    # There is a negative implication: --perf-prof disables
-    # --wasm-write-protect-code-memory.
-    "wasm_write_protect_code": ["--perf-prof"],
     "assert_types": [
         "--concurrent-recompilation", "--stress_concurrent_inlining",
         "--no-assert-types"
@@ -101,6 +105,11 @@ INCOMPATIBLE_FLAGS_PER_VARIANT = {
 # in _get_statusfile_variables in base_runner.py.
 # The conflicts might be directly contradictory flags or be caused by the
 # implications defined in flag-definitions.h.
+# The keys of the following map support negation through '!', e.g. rule
+#
+#   "!code_comments": [...]
+#
+# applies when the code_comments build variable is NOT set.
 INCOMPATIBLE_FLAGS_PER_BUILD_VARIABLE = {
   "lite_mode": ["--no-lazy-feedback-allocation", "--max-semi-space-size=*",
                 "--stress-concurrent-inlining"]
@@ -120,15 +129,21 @@ INCOMPATIBLE_FLAGS_PER_BUILD_VARIABLE = {
 # The conflicts might be directly contradictory flags or be caused by the
 # implications defined in flag-definitions.h.
 INCOMPATIBLE_FLAGS_PER_EXTRA_FLAG = {
-  "--concurrent-recompilation": ["--predictable", "--assert-types"],
-  "--parallel-compile-tasks-for-eager-toplevel": ["--predictable"],
-  "--parallel-compile-tasks-for-lazy": ["--predictable"],
-  "--gc-interval=*": ["--gc-interval=*"],
-  "--optimize-for-size": ["--max-semi-space-size=*"],
-  "--stress_concurrent_allocation":
+    "--concurrent-recompilation": [
+        "--predictable", "--assert-types", "--turboshaft-assert-types",
+        "--single-threaded"
+    ],
+    "--parallel-compile-tasks-for-eager-toplevel": ["--predictable"],
+    "--parallel-compile-tasks-for-lazy": ["--predictable"],
+    "--gc-interval=*": ["--gc-interval=*"],
+    "--optimize-for-size": ["--max-semi-space-size=*"],
+    "--stress_concurrent_allocation":
         INCOMPATIBLE_FLAGS_PER_VARIANT["stress_concurrent_allocation"],
-  "--stress-concurrent-inlining":
+    "--stress-concurrent-inlining":
         INCOMPATIBLE_FLAGS_PER_VARIANT["stress_concurrent_inlining"],
+    "--turboshaft-assert-types": [
+        "--concurrent-recompilation", "--stress-concurrent-inlining"
+    ],
 }
 
 SLOW_VARIANTS = set([
