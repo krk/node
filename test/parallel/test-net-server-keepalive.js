@@ -10,7 +10,7 @@ const server = net.createServer({
   const setKeepAlive = socket._handle.setKeepAlive;
   socket._handle.setKeepAlive = common.mustCall((enable, initialDelay) => {
     assert.strictEqual(enable, true);
-    assert.match(String(initialDelay), /^2|3$/);
+    assert.match(String(initialDelay), /^2000|3000$/);
     return setKeepAlive.call(socket._handle, enable, initialDelay);
   }, 2);
   socket.setKeepAlive(true, 1000);
@@ -27,7 +27,7 @@ server._handle.onconnection = common.mustCall((err, clientHandle) => {
   const setKeepAlive = clientHandle.setKeepAlive;
   clientHandle.setKeepAlive = common.mustCall((enable, initialDelayMsecs) => {
     assert.strictEqual(enable, server.keepAlive);
-    assert.strictEqual(initialDelayMsecs, server.keepAliveInitialDelay);
+    assert.strictEqual(initialDelayMsecs / 1000, server.keepAliveInitialDelay);
     setKeepAlive.call(clientHandle, enable, initialDelayMsecs);
     clientHandle.setKeepAlive = setKeepAlive;
   });

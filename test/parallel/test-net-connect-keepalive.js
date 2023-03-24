@@ -5,7 +5,7 @@ const assert = require('assert');
 const net = require('net');
 
 const truthyValues = [true, 1, 'true', {}, []];
-const delays = [[123, 0], [456123, 456], [-123000, 0], [undefined, 0]];
+const delays = [[123, 123], [456123, 456123], [-123000, 0], [undefined, undefined]];
 const falseyValues = [false, 0, ''];
 
 const genSetKeepAlive = (desiredEnable, desiredDelay) => (enable, delay) => {

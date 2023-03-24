@@ -62,6 +62,7 @@ test-net-error-twice: SKIP
 # https://github.com/libuv/libuv/pull/2782
 test-net-allow-half-open: SKIP
 test-net-keepalive: SKIP
+test-net-keepalive-tls: SKIP
 test-net-persistent-keepalive: SKIP
 test-net-socket-close-after-end: SKIP
 test-net-socket-connect-without-cb: SKIP
